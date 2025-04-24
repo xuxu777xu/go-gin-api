@@ -66,7 +66,7 @@ def test_ping():
 
 def test_search_tickets():
     """测试 POST /api/v1/flights/tickets/search 接口"""
-    url = f"{BASE_URL}/api/v1/flights/tickets/search"
+    url = f"{BASE_URL}/api/v1/tc/tickets/search"
     payload = {
         "from": "SHA",
         "to": "PEK",
@@ -99,7 +99,7 @@ def test_order_ticket(flight_id):
     测试 POST /api/v1/flights/tickets/order 接口。
     注意：需要一个有效的 'flightId'。如果 flight_id 为 None 或无效，则跳过。
     """
-    url = f"{BASE_URL}/api/v1/flights/tickets/order"
+    url = f"{BASE_URL}/api/v1/tc/tickets/order"
 
     if not flight_id:
         print(f"--- Skipping POST {url} ---")

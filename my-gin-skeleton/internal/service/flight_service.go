@@ -134,7 +134,8 @@ func (s *flightService) Search(ctx context.Context, opt dto.SearchOption) (*dto.
 	apiOpts.Set("tcuserid", userID)
 	apiOpts.Set("tcsectoken", tcSecToken)
 
-	s.logger.Debug("Calling api.Get_airline_message", zap.Any("apiOptions", apiOpts.Clone().Set("tcsectoken", "***"))) // 记录选项，屏蔽敏感令牌
+	// s.logger.Debug("Calling api.Get_airline_message", zap.Any("apiOptions", apiOpts.Clone().Set("tcsectoken", "***"))) // 记录选项，屏蔽敏感令牌
+	s.logger.Debug("Calling api.Get_airline_message", zap.Any("apiOptions", apiOpts.Clone().Set("tcsectoken", tcSecToken)))
 
 	// --- 2. 通过注入的客户端调用 API 函数 ---
 	resultJson, err := s.apiClient.Get_airline_message(&apiOpts) // 传递指针
