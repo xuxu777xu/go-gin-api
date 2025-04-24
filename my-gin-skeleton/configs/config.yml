@@ -1,0 +1,45 @@
+# 服务器配置
+server:
+  addr: ":8080" # 监听地址和端口
+  readTimeout: "15s" # 读取超时
+  writeTimeout: "15s" # 写入超时
+
+# 功能模块配置
+modules:
+  ratelimit:
+    enable: false # 是否启用限流插件
+    rate: 10      # 每秒允许的请求数 (令牌生成速率)
+    burst: 20     # 令牌桶的容量 (允许的瞬时突发量)
+  auth:
+    enable: false # 启用认证插件
+    secret: "your-very-secret-key" # TODO: 强烈建议从环境变量或安全配置中读取此值
+    expire: 3600 # 过期时间 (秒), 例如: 1小时
+    issuer: "my-gin-skeleton" # 签发者 (可选)
+  # swagger: false # 暂时移除或注释掉未明确定义的模块
+  # metrics: false # 暂时移除或注释掉未明确定义的模块
+  # 添加其他插件配置...
+
+# 日志配置
+logger:
+  level: "info"
+  file: "logs/app.log" # 日志文件路径
+  maxSize: 128       # MB
+  maxBackups: 30     # 个数
+  maxAge: 30         # 天
+  compress: false
+
+# 数据库配置
+database:
+  enable: false
+  driver: "mysql"
+  dsn: "user:password@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+  maxIdleConns: 10
+  maxOpenConns: 100
+  connMaxLifetime: "1h"
+
+# Redis 配置
+redis:
+  enable: false
+  addr: "127.0.0.1:6379"
+  password: ""
+  db: 0
