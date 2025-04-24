@@ -11,6 +11,8 @@ type APIError struct {
 	Code          int    // 自定义业务错误码
 	Message       string // 用户友好的错误信息
 	originalError error  // 原始底层错误，可选
+	// RequestID   string // 请求 ID，可选，用于跟踪请求
+	// Details  interface{} // 可选的详细信息字段
 }
 
 // Error 实现了标准的 error 接口。
