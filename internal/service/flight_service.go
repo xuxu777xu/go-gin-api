@@ -15,6 +15,12 @@ import (
 	"go.uber.org/zap"
 )
 
+
+
+
+
+
+
 // 用于认证令牌的 Context 键
 type contextKey string
 
@@ -134,7 +140,7 @@ func (s *flightService) Search(ctx context.Context, opt dto.SearchOption) (*dto.
 	apiOpts.Set("tcuserid", userID)
 	apiOpts.Set("tcsectoken", tcSecToken)
 
-	s.logger.Debug("Calling api.Get_airline_message", zap.Any("apiOptions", apiOpts.Clone().Set("tcsectoken", "***"))) // 记录选项，屏蔽敏感令牌
+	// s.logger.Debug("Calling api.Get_airline_message", zap.Any("apiOptions", apiOpts.Clone().Set("tcsectoken", "***"))) // 记录选项，屏蔽敏感令牌
 
 	// --- 2. 通过注入的客户端调用 API 函数 ---
 	resultJson, err := s.apiClient.Get_airline_message(&apiOpts) // 传递指针
@@ -246,29 +252,21 @@ func (s *flightService) CreateOrder(ctx context.Context, req dto.OrderRequest) (
 	}
 
 
-	// --- 1. 为 api.CreateOrder 准备 api.Options ---
-	// 基于对 pkg/api/requtst.go:CreateOrder 的分析
-	apiOpts := tongchengapi.NewOptions()
+	// --- 1. 为 api.CreateOrder 准备 Options 
+	passengerApiOpts := tongchengapi.NewOptions()
 
 	// --- 设置认证/会话令牌（用于请求头）---
-	apiOpts.Set("tcuserid", userID)       // API 请求头需要
-	apiOpts.Set("tcsectoken", tcSecToken) // API 请求头需要
-	apiOpts.Set("sec_token", secToken)    // API 请求头需要（键为 sec_token）
-	// deviceID 在 API 中是硬编码的，在此处设置可能会被忽略。
-	// apiOpts.Set("deviceId", deviceID)
+	passengerApiOpts.Set("tcuserid", userID)       
+	passengerApiOpts.Set("tcsectoken", tcSecToken) 
+	passengerApiOpts.Set("sec_token", secToken)   
+	passengerApiOpts.Set("deviceId", deviceID)
 
-	// --- 设置请求体构建参数（api.CreateOrder 内部使用）---
-
-	// 订单上下文参数（关键 - 值应来自之前的步骤，如 Buildtemporder/OrderQuery）
-	// 使用 DTO 中的 OrderSerialId（假设在此调用之前已正确获取）
-	apiOpts.Set("OrderSerialId", req.OrderSerialId)
+	passengerApiOpts.Set("OrderSerialId", req.OrderSerialId)
 	// 使用 DTO 中的 Code 和 PromotionSign
-	apiOpts.Set("code", req.Code)
-	apiOpts.Set("promotionSign", req.PromotionSign)
-
-	// 联系人信息
-	apiOpts.Set("mobile", req.ContactPhone) // 假设 ContactPhone 映射到 API 的 'LinkMobile'
-	// apiOpts.Set("LinkMan", req.ContactName) // API 使用硬编码的 "许玉鹏"，在此处设置可能会被忽略。
+	passengerApiOpts.Set("code", req.Code)
+	passengerApiOpts.Set("promotionSign", req.PromotionSign)
+	passengerApiOpts.Set("mobile", req.ContactPhone) 
+	passengerApiOpts.Set("LinkMan", req.ContactName) 
 
 	// --- 遍历乘客并为每个乘客调用 API ---
 	// 注意：底层的 tongchengapi.CreateOrder 每次调用仅支持一位乘客。
@@ -287,8 +285,8 @@ func (s *flightService) CreateOrder(ctx context.Context, req dto.OrderRequest) (
 	for i, p := range req.Passengers {
 		s.logger.Info("Processing passenger", zap.Int("index", i), zap.String("name", p.Name))
 
-		// 为每个乘客创建一个 *新的* api.Options 以避免覆盖
-		passengerApiOpts := tongchengapi.NewOptions()
+        // 从基础选项克隆，避免重复设置相同参数
+        passengerApiOpts := passengerApiOpts.Clone()
 
 		// --- 设置认证/会话令牌（此请求中所有乘客相同）---
 		passengerApiOpts.Set("tcuserid", userID)
@@ -389,35 +387,4 @@ func (s *flightService) CreateOrder(ctx context.Context, req dto.OrderRequest) (
 		zap.Bool("overallSuccess", orderResponse.Success))
 
 	return orderResponse, nil
-}
-// --- TongchengAPIClient 的生产环境实现 ---
-
-type tongchengAPIClientImpl struct{}
-
-// NewTongchengAPIClientImpl 创建一个新的生产环境客户端。
-func NewTongchengAPIClientImpl() TongchengAPIClient {
-	return &tongchengAPIClientImpl{}
-}
-
-// Get_airline_message 调用实际的同程 API 函数。
-func (c *tongchengAPIClientImpl) Get_airline_message(opts *tongchengapi.Options) (string, error) {
-	// 注意：原始函数接受 tongchengapi.Options，而不是 *tongchengapi.Options。
-	// 我们需要在此处解引用指针。
-	if opts == nil {
-		// 服务层在调用此函数之前确保 opts 不为 nil。
-		// 如果它为 nil，底层的 API 调用可能会 panic。
-		// 如果需要，考虑添加显式的 nil 检查和错误返回。
-		return "", fmt.Errorf("internal error: opts cannot be nil for Get_airline_message")
-	}
-	return tongchengapi.Get_airline_message(*opts) // 解引用指针
-}
-
-// CreateOrder 调用实际的同程 API 函数。
-func (c *tongchengAPIClientImpl) CreateOrder(opts *tongchengapi.Options) (string, error) {
-	// 需要与上面类似的解引用。
-	if opts == nil {
-		// 请参阅上面 Get_airline_message 中的注释。
-		return "", fmt.Errorf("internal error: opts cannot be nil for CreateOrder")
-	}
-	return tongchengapi.CreateOrder(*opts) // 解引用指针
 }

@@ -10,7 +10,7 @@ type SearchOption struct {
 	// 使用 string 接收日期，方便 Gin 绑定和初始校验格式
 	Date     string    `json:"date" binding:"required,datetime=2006-01-02"` // 日期 (格式：YYYY-MM-DD) - datetime 标签用于 Gin v1.9+ 的 validator v10
 	// --- 可选参数示例 ---
-	// CabinClass string `json:"cabinClass,omitempty"` // 舱位等级 (例如："Economy", "Business")
+	CabinClass string `json:"cabinClass,omitempty"` // 舱位等级 (例如："Economy", "Business")
 	// Passengers int    `json:"passengers,omitempty" binding:"omitempty,gte=1"` // 乘客人数, omitempty 表示可选, gte=1 表示大于等于1
 }
 
