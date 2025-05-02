@@ -41,3 +41,16 @@
 {"level":"WARN","time":"2025-04-23 18:52:27.114","caller":"bootstrap/middleware.go:163","msg":"Request completed with client error","status":400,"method":"POST","path":"/api/v1/flights/tickets/order","query":"","ip":"127.0.0.1","user_agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.87 Safari/537.36","errors":"Request failed with status 400"}
 {"level":"INFO","time":"2025-04-23 18:53:01.910","caller":"server/main.go:120","msg":"Shutting down server..."}
 {"level":"INFO","time":"2025-04-23 18:53:01.910","caller":"server/main.go:132","msg":"Server exiting"}
+{"level":"INFO","time":"2025-05-02 15:39:37.127","caller":"bootstrap/logger.go:26","msg":"Logger initialized successfully via InitializeLogger","level":"info","file":"logs/app.log"}
+{"level":"INFO","time":"2025-05-02 15:39:37.127","caller":"bootstrap/database.go:25","msg":"数据库在配置中被禁用"}
+{"level":"INFO","time":"2025-05-02 15:39:37.127","caller":"bootstrap/redis.go:18","msg":"Redis is disabled in config"}
+{"level":"INFO","time":"2025-05-02 15:39:37.127","caller":"bootstrap/middleware.go:56","msg":"Attached core middleware (Logger, Recovery)"}
+{"level":"INFO","time":"2025-05-02 15:39:37.127","caller":"bootstrap/bootstrap_plugin.go:24","msg":"Initializing and registering enabled plugins..."}
+{"level":"INFO","time":"2025-05-02 15:39:37.127","caller":"bootstrap/bootstrap_plugin.go:59","msg":"No plugins were enabled or registered."}
+{"level":"INFO","time":"2025-05-02 15:39:37.127","caller":"bootstrap/router.go:20","msg":"Registering application routes..."}
+{"level":"INFO","time":"2025-05-02 15:39:37.128","caller":"bootstrap/router.go:32","msg":"Setting up API v1 route group","prefix":"/api/v1"}
+{"level":"INFO","time":"2025-05-02 15:39:37.128","caller":"bootstrap/router.go:47","msg":"Registered flight routes"}
+{"level":"INFO","time":"2025-05-02 15:39:37.128","caller":"bootstrap/router.go:63","msg":"Finished registering application routes."}
+{"level":"INFO","time":"2025-05-02 15:39:37.128","caller":"cmd/main.go:98","msg":"Server starting","address":":8080"}
+{"level":"INFO","time":"2025-05-02 15:40:07.071","caller":"cmd/main.go:120","msg":"Shutting down server..."}
+{"level":"INFO","time":"2025-05-02 15:40:07.071","caller":"cmd/main.go:132","msg":"Server exiting"}

@@ -1,11 +1,9 @@
 package service
+
 import (
 	"fmt"
 	"myGin/internal/pkg/tongchengapi" // 更新了导入路径
-
 )
-
-
 
 // --- TongchengAPIClient 的生产环境实现 ---
 

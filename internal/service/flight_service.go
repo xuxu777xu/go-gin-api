@@ -15,19 +15,13 @@ import (
 	"go.uber.org/zap"
 )
 
-
-
-
-
-
-
 // 用于认证令牌的 Context 键
 type contextKey string
 
 const (
 	CtxKeyTcUserID   contextKey = "tcUserID"
 	CtxKeyTcSecToken contextKey = "tcSecToken"
-	CtxKeySecToken   contextKey = "secToken"   // 对应 CreateOrder 中的 tcsectk 头部
+	CtxKeySecToken   contextKey = "secToken" // 对应 CreateOrder 中的 tcsectk 头部
 	CtxKeyDeviceID   contextKey = "deviceID"
 )
 
@@ -124,23 +118,10 @@ func (s *flightService) Search(ctx context.Context, opt dto.SearchOption) (*dto.
 		s.logger.Warn("Non-essential auth tokens missing, proceeding with search", zap.Error(err))
 	}
 
-
 	// --- 1. 为 api.Get_airline_message 准备 api.Options ---
 	apiOpts := tongchengapi.NewOptions()
-	// 注意：根据 pkg/api/requtst.go:Get_airline_message，以下参数（dcc, acc, ddate, passengerInfo）
-	// 在函数体内是硬编码的，在此处通过 options 设置它们将无效。
-	// 如果需要动态值，必须修改 pkg/api/requtst.go:Get_airline_message。
-	// apiOpts.Set("dcc", opt.From)
-	// apiOpts.Set("acc", opt.To)
-	// apiOpts.Set("ddate", opt.Date)
-	// passengerInfo := map[string]interface{}{"adultCount": 1, "childCount": 0, "infantCount": 0}
-	// apiOpts.Set("passengerInfo", passengerInfo) // Get_airline_message 不使用此键
-
-	// Get_airline_message 使用这些令牌来设置请求头。
 	apiOpts.Set("tcuserid", userID)
 	apiOpts.Set("tcsectoken", tcSecToken)
-
-	// s.logger.Debug("Calling api.Get_airline_message", zap.Any("apiOptions", apiOpts.Clone().Set("tcsectoken", "***"))) // 记录选项，屏蔽敏感令牌
 
 	// --- 2. 通过注入的客户端调用 API 函数 ---
 	resultJson, err := s.apiClient.Get_airline_message(&apiOpts) // 传递指针
@@ -213,11 +194,11 @@ func (s *flightService) Search(ctx context.Context, opt dto.SearchOption) (*dto.
 			// ID:            flightJson.Get("id").String(), // 验证：路径 'id' 需要确认
 			ID:            flightJson.Get("fn").String(), // 使用航班号作为临时 ID
 			FlightNumber:  flightJson.Get("fn").String(),
-			Airline:       flightJson.Get("asn").String(),      // 使用 'asn' (航空公司名称) 或 'amn' (简称)
+			Airline:       flightJson.Get("asn").String(), // 使用 'asn' (航空公司名称) 或 'amn' (简称)
 			DepartureTime: depTime,
 			ArrivalTime:   arrTime,
-			Origin:        flightJson.Get("dac").String(),      // 使用 'dac' (出发机场代码)
-			Destination:   flightJson.Get("aac").String(),      // 使用 'aac' (到达机场代码)
+			Origin:        flightJson.Get("dac").String(),     // 使用 'dac' (出发机场代码)
+			Destination:   flightJson.Get("aac").String(),     // 使用 'aac' (到达机场代码)
 			Price:         flightJson.Get("lps.0.sp").Float(), // 使用 'lps.0.sp' (经济舱最低价)
 			Currency:      "CNY",                              // 假设为 CNY 或验证路径
 		}
@@ -239,11 +220,19 @@ func (s *flightService) CreateOrder(ctx context.Context, req dto.OrderRequest) (
 		s.logger.Error("Authentication or session tokens missing for order creation", zap.Error(err))
 		// 检查具体缺少哪些令牌以提供更精确的错误
 		var requiredMissing []string
-		if userID == "" { requiredMissing = append(requiredMissing, string(CtxKeyTcUserID)) }
-		if tcSecToken == "" { requiredMissing = append(requiredMissing, string(CtxKeyTcSecToken)) }
-		if secToken == "" { requiredMissing = append(requiredMissing, string(CtxKeySecToken)) }
-		if deviceID == "" { requiredMissing = append(requiredMissing, string(CtxKeyDeviceID)) }
-		
+		if userID == "" {
+			requiredMissing = append(requiredMissing, string(CtxKeyTcUserID))
+		}
+		if tcSecToken == "" {
+			requiredMissing = append(requiredMissing, string(CtxKeyTcSecToken))
+		}
+		if secToken == "" {
+			requiredMissing = append(requiredMissing, string(CtxKeySecToken))
+		}
+		if deviceID == "" {
+			requiredMissing = append(requiredMissing, string(CtxKeyDeviceID))
+		}
+
 		if len(requiredMissing) > 0 {
 			return nil, fmt.Errorf("missing required tokens for order creation: %s", strings.Join(requiredMissing, ", "))
 		}
@@ -251,14 +240,13 @@ func (s *flightService) CreateOrder(ctx context.Context, req dto.OrderRequest) (
 		s.logger.Warn("Error retrieving tokens, but proceeding", zap.Error(err))
 	}
 
-
-	// --- 1. 为 api.CreateOrder 准备 Options 
+	// --- 1. 为 api.CreateOrder 准备 Options
 	passengerApiOpts := tongchengapi.NewOptions()
 
 	// --- 设置认证/会话令牌（用于请求头）---
-	passengerApiOpts.Set("tcuserid", userID)       
-	passengerApiOpts.Set("tcsectoken", tcSecToken) 
-	passengerApiOpts.Set("sec_token", secToken)   
+	passengerApiOpts.Set("tcuserid", userID)
+	passengerApiOpts.Set("tcsectoken", tcSecToken)
+	passengerApiOpts.Set("sec_token", secToken)
 	passengerApiOpts.Set("deviceId", deviceID)
 
 	passengerApiOpts.Set("OrderSerialId", req.OrderSerialId)
@@ -312,10 +300,10 @@ func (s *flightService) CreateOrder(ctx context.Context, req dto.OrderRequest) (
 		passengerApiOpts.Set("passenger_idcard", p.IDNumber) // 用于 passId
 
 		// --- 记录选项（屏蔽敏感令牌）---
-		logOpts := passengerApiOpts.Clone()
-		logOpts.Delete("tcsectoken")
-		logOpts.Delete("sec_token")
-		s.logger.Debug("Calling api.CreateOrder for passenger", zap.String("passengerName", p.Name), zap.Any("apiOptions", logOpts))
+		// logOpts := passengerApiOpts.Clone()
+		// logOpts.Delete("tcsectoken")
+		// logOpts.Delete("sec_token")
+		// s.logger.Debug("Calling api.CreateOrder for passenger", zap.String("passengerName", p.Name), zap.Any("apiOptions", logOpts))
 
 		// --- 通过注入的客户端为当前乘客调用 API ---
 		resultJson, err := s.apiClient.CreateOrder(&passengerApiOpts) // 传递指针
@@ -364,7 +352,7 @@ func (s *flightService) CreateOrder(ctx context.Context, req dto.OrderRequest) (
 						zap.String("rawResponse", resultJson))
 					accumulatedErrors = append(accumulatedErrors, fmt.Sprintf("%s: %s", p.Name, passengerResult.ErrorMessage))
 				}
-				
+
 			}
 		}
 		orderResponse.PassengerResults = append(orderResponse.PassengerResults, passengerResult)
